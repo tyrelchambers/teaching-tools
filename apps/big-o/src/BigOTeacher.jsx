@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
+import { questions } from "./questions";
 
 // ============================================================
 // COMPLEXITIES DATA
@@ -127,76 +128,6 @@ const complexities = [
       "Each call branches into two more calls. The call tree nearly doubles at every level. fib(30) is already ~1 billion calls. fib(50) would take years. Memoization or iteration cuts this to O(n) — a hint that sometimes the complexity isn't in the problem, it's in the approach.",
     curve: (n) => Math.pow(2, Math.min(n, 30)),
   },
-];
-
-// ============================================================
-// PRACTICE QUESTIONS
-// ============================================================
-const questions = [
-  { id: "q1", tier: 1, type: "multiple_choice", prompt: "What's the complexity of accessing an array element by its index?",
-    code: ["function get(arr, i) {", "  return arr[i];", "}"],
-    options: ["O(1)", "O(log n)", "O(n)", "O(n\u00b2)"], answer: 0,
-    explanation: "Arrays store elements in contiguous memory, so computing the address from an index is a single arithmetic operation — regardless of how large the array is." },
-  { id: "q2", tier: 1, type: "multiple_choice", prompt: "What's the complexity of this function?",
-    code: ["function print(arr) {", "  for (let i = 0; i < arr.length; i++) {", "    console.log(arr[i]);", "  }", "}"],
-    options: ["O(1)", "O(log n)", "O(n)", "O(n\u00b2)"], answer: 2,
-    explanation: "A single loop iterates through every element exactly once. The work scales directly with the input size n." },
-  { id: "q3", tier: 1, type: "true_false", prompt: "O(2n) and O(n) describe the same growth class.",
-    explanation: "True — Big O ignores constant factors. Whether you do n work or 2n work, both scale linearly with input size. We drop the constant and call both O(n).",
-    answer: true },
-  { id: "q4", tier: 2, type: "multiple_choice", prompt: "What's the complexity of this nested loop?",
-    code: ["function pairs(arr) {", "  for (let i = 0; i < arr.length; i++) {", "    for (let j = 0; j < arr.length; j++) {", "      console.log(arr[i], arr[j]);", "    }", "  }", "}"],
-    options: ["O(n)", "O(n log n)", "O(n\u00b2)", "O(2\u207F)"], answer: 2,
-    explanation: "Two loops, each going from 0 to n, nested inside each other. The inner body runs n \u00d7 n = n\u00b2 times." },
-  { id: "q5", tier: 2, type: "identify_lines", prompt: "Which line(s) are responsible for making this O(log n)? Click all that apply.",
-    code: ["function binarySearch(arr, target) {", "  let lo = 0, hi = arr.length - 1;", "  while (lo <= hi) {", "    const mid = (lo + hi) >> 1;", "    if (arr[mid] === target) return mid;", "    if (arr[mid] < target) lo = mid + 1;", "    else hi = mid - 1;", "  }", "  return -1;", "}"],
-    correctLines: [5, 6],
-    explanation: "The two branches that move lo or hi past mid each discard half of the remaining range. That halving is the defining characteristic of logarithmic time." },
-  { id: "q6", tier: 2, type: "multiple_choice", prompt: "A hash map's lookup by key is typically...",
-    options: ["O(1) on average", "O(log n)", "O(n) always", "O(n log n)"], answer: 0,
-    explanation: "Hash maps use a hash function to jump directly to the bucket for a key. On average this is O(1), though worst case with many collisions it can degrade to O(n)." },
-  { id: "q7", tier: 3, type: "compare", prompt: "For very large n, which algorithm is faster?",
-    optionA: { label: "O(n log n)", curve: (n) => n * Math.log2(Math.max(n, 1)) },
-    optionB: { label: "O(n\u00b2)", curve: (n) => n * n },
-    answer: "A",
-    explanation: "n log n grows much slower than n\u00b2. At n = 1,000: n log n \u2248 10,000 but n\u00b2 = 1,000,000. This is why merge sort beats bubble sort on large inputs." },
-  { id: "q8", tier: 3, type: "multiple_choice", prompt: "What's the complexity here? The inner loop doesn't depend on n.",
-    code: ["function scale(arr) {", "  for (let i = 0; i < arr.length; i++) {", "    for (let j = 0; j < 100; j++) {", "      arr[i] *= 2;", "    }", "  }", "}"],
-    options: ["O(1)", "O(n)", "O(n\u00b2)", "O(100n)"], answer: 1,
-    explanation: "The inner loop runs a fixed 100 times regardless of n — that's a constant. The outer loop runs n times. Total: 100n operations, which simplifies to O(n)." },
-  { id: "q9", tier: 3, type: "multiple_choice", prompt: "What's the complexity of this function?",
-    code: ["function halve(n) {", "  while (n > 1) {", "    n = n / 2;", "  }", "}"],
-    options: ["O(1)", "O(log n)", "O(n)", "O(n\u00b2)"], answer: 1,
-    explanation: "Each iteration halves n. Starting from n, it takes log\u2082(n) iterations to reach 1. This is the signature of logarithmic time — repeated halving." },
-  { id: "q10", tier: 4, type: "multiple_choice", prompt: "Two sequential loops — what's the total complexity?",
-    code: ["function twoLoops(arr) {", "  for (let i = 0; i < arr.length; i++) {", "    console.log(arr[i]);", "  }", "  for (let j = 0; j < arr.length; j++) {", "    console.log(arr[j] * 2);", "  }", "}"],
-    options: ["O(1)", "O(n)", "O(2n\u00b2)", "O(n\u00b2)"], answer: 1,
-    explanation: "Two sequential loops give you O(n) + O(n) = O(2n). Big O drops constants, so this simplifies to O(n). Sequential operations add; nested operations multiply." },
-  { id: "q11", tier: 4, type: "multiple_choice", prompt: "A loop containing a binary search — what's the complexity?",
-    code: ["function findAll(arr, targets) {", "  // arr.length = n, targets.length = n", "  for (let t of targets) {", "    binarySearch(arr, t);  // O(log n)", "  }", "}"],
-    options: ["O(n)", "O(log n)", "O(n log n)", "O(n\u00b2)"], answer: 2,
-    explanation: "The outer loop runs n times. Each iteration does O(log n) work via binary search. Multiplying: n \u00d7 log n = O(n log n)." },
-  { id: "q12", tier: 4, type: "identify_lines", prompt: "Which line(s) drive the O(n\u00b2) complexity? Click all that apply.",
-    code: ["function bubbleSort(arr) {", "  const n = arr.length;", "  for (let i = 0; i < n; i++) {", "    for (let j = 0; j < n - i - 1; j++) {", "      if (arr[j] > arr[j + 1]) {", "        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];", "      }", "    }", "  }", "  return arr;", "}"],
-    correctLines: [2, 3],
-    explanation: "The two nested for-loops are what create the n\u00b2 behavior. The outer loop runs n times, and the inner loop runs up to n times for each outer iteration. The swap itself is O(1)." },
-  { id: "q13", tier: 5, type: "multiple_choice", prompt: "The inner loop depends on i. What's the true complexity?",
-    code: ["function tricky(arr) {", "  for (let i = 0; i < arr.length; i++) {", "    for (let j = 0; j < i; j++) {", "      console.log(arr[i], arr[j]);", "    }", "  }", "}"],
-    options: ["O(n)", "O(n log n)", "O(n\u00b2)", "O(n\u00b2/2)"], answer: 2,
-    explanation: "Even though the inner loop only goes up to i (not n), the total work is 0 + 1 + 2 + ... + (n-1) = n(n-1)/2 operations. That's still O(n\u00b2) — Big O ignores the constant factor of 1/2." },
-  { id: "q14", tier: 5, type: "multiple_choice", prompt: "What's the complexity of this recursive function?",
-    code: ["function fib(n) {", "  if (n <= 1) return n;", "  return fib(n - 1) + fib(n - 2);", "}"],
-    options: ["O(n)", "O(n log n)", "O(n\u00b2)", "O(2\u207F)"], answer: 3,
-    explanation: "Each call spawns two more calls, with no memoization. The call tree has roughly 2\u207F nodes. This is why naive recursive Fibonacci is exponential — and why memoization drops it to O(n)." },
-  { id: "q15", tier: 5, type: "compare", prompt: "For n = 1,000,000, which is faster in absolute terms?",
-    optionA: { label: "O(log n)", curve: (n) => Math.log2(n) },
-    optionB: { label: "O(1) with constant = 1000", curve: (n) => 1000 },
-    answer: "A",
-    explanation: "This is a trap! At n = 1,000,000: log\u2082(1,000,000) \u2248 20. So 20 operations beats 1000 operations. Big O describes growth, not real-world speed at specific sizes — but here the constant is so large that log n wins even in absolute terms." },
-  { id: "q16", tier: 5, type: "multiple_choice", prompt: "What's the complexity? Note the outer loop.",
-    code: ["function subtle(n) {", "  for (let i = 1; i < n; i *= 2) {", "    for (let j = 0; j < n; j++) {", "      console.log(i, j);", "    }", "  }", "}"],
-    options: ["O(n)", "O(n log n)", "O(n\u00b2)", "O(log n)"], answer: 1,
-    explanation: "The outer loop doubles i each time, so it runs log n times. The inner loop runs n times for each outer iteration. Multiplying: n \u00d7 log n = O(n log n)." },
 ];
 
 const TIER_LABELS = { 1: "Fundamentals", 2: "Recognition", 3: "Comparison", 4: "Decomposition", 5: "Traps & Subtlety" };
@@ -653,14 +584,54 @@ function LearnMode() {
 // ============================================================
 // PRACTICE MODE
 // ============================================================
+const COUNT_OPTIONS = [5, 10, 20, "all"];
+
+function fisherYates(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 function PracticeMode() {
+  const [quizStarted, setQuizStarted] = useState(false);
+  const [selectedTiers, setSelectedTiers] = useState([1, 2, 3, 4, 5]);
+  const [questionCount, setQuestionCount] = useState(10);
+  const [activeQuestions, setActiveQuestions] = useState([]);
   const [qIndex, setQIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState(null);
   const [selectedLines, setSelectedLines] = useState([]);
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [answeredIds, setAnsweredIds] = useState({});
-  const q = questions[qIndex];
+  const q = activeQuestions[qIndex];
+
+  const poolSize = useMemo(
+    () => questions.filter((qq) => selectedTiers.includes(qq.tier)).length,
+    [selectedTiers],
+  );
+  const configColor = tierColors[Math.min(...(selectedTiers.length ? selectedTiers : [1]))] || "#eab308";
+
+  const toggleTier = (tier) => {
+    setSelectedTiers((prev) =>
+      prev.includes(tier) ? prev.filter((t) => t !== tier) : [...prev, tier].sort((a, b) => a - b),
+    );
+  };
+
+  const startQuiz = () => {
+    const pool = questions.filter((qq) => selectedTiers.includes(qq.tier));
+    const shuffled = fisherYates([...pool]);
+    const count = questionCount === "all" ? shuffled.length : Math.min(questionCount, shuffled.length);
+    setActiveQuestions(shuffled.slice(0, count));
+    setQIndex(0);
+    setScore({ correct: 0, total: 0 });
+    setAnsweredIds({});
+    setUserAnswer(null);
+    setSelectedLines([]);
+    setSubmitted(false);
+    setQuizStarted(true);
+  };
 
   useEffect(() => {
     setUserAnswer(null);
@@ -704,7 +675,91 @@ function PracticeMode() {
   const reset = () => {
     setQIndex(0); setScore({ correct: 0, total: 0 }); setAnsweredIds({});
     setUserAnswer(null); setSelectedLines([]); setSubmitted(false);
+    setActiveQuestions([]);
+    setQuizStarted(false);
   };
+
+  if (!quizStarted) {
+    const effectiveCount = questionCount === "all" ? poolSize : Math.min(questionCount, poolSize);
+    const canStart = selectedTiers.length > 0 && poolSize > 0;
+    return (
+      <div className="space-y-6">
+        <div className="border border-stone-800 bg-stone-900/40 p-6 md:p-8">
+          <div className="text-xs tracking-widest uppercase text-stone-500 mb-1">configure your session</div>
+          <h2 className="text-2xl md:text-3xl mb-6 text-stone-100" style={{ fontFamily: "'Fraunces', Georgia, serif", fontStyle: "italic" }}>
+            Pick your difficulty. Pick your length.
+          </h2>
+
+          <div className="mb-6">
+            <div className="text-xs tracking-widest uppercase text-stone-500 mb-3">difficulty</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {[1, 2, 3, 4, 5].map((tier) => {
+                const active = selectedTiers.includes(tier);
+                const color = tierColors[tier];
+                return (
+                  <button key={tier} onClick={() => toggleTier(tier)}
+                    className="text-left px-4 py-3 border transition-all flex items-center gap-3"
+                    style={{
+                      background: active ? `${color}15` : "transparent",
+                      borderColor: active ? color : "#292524",
+                      color: active ? "#fafaf9" : "#a8a29e",
+                    }}>
+                    <span className="w-4 h-4 border flex items-center justify-center text-xs shrink-0"
+                      style={{ borderColor: active ? color : "#57534e", background: active ? color : "transparent", color: active ? "#0c0a09" : "transparent" }}>
+                      {active ? "✓" : ""}
+                    </span>
+                    <span className="w-2 h-2 shrink-0" style={{ background: color }} />
+                    <span className="font-semibold">Tier 0{tier}</span>
+                    <span className="text-stone-500 text-sm">— {TIER_LABELS[tier]}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <div className="text-xs tracking-widest uppercase text-stone-500 mb-3">number of questions</div>
+            <div className="grid grid-cols-4 gap-2">
+              {COUNT_OPTIONS.map((opt) => {
+                const active = questionCount === opt;
+                const label = opt === "all" ? `All (${poolSize})` : String(opt);
+                return (
+                  <button key={String(opt)} onClick={() => setQuestionCount(opt)}
+                    className="px-4 py-3 border font-semibold transition-all"
+                    style={{
+                      background: active ? `${configColor}15` : "transparent",
+                      borderColor: active ? configColor : "#292524",
+                      color: active ? configColor : "#a8a29e",
+                    }}>
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="border-t border-stone-800 pt-5 flex items-center justify-between flex-wrap gap-3">
+            <div className="text-sm text-stone-400">
+              {canStart ? (
+                <>pool: <span className="text-stone-100 font-bold">{poolSize}</span> question{poolSize === 1 ? "" : "s"} available
+                  {" · "}you'll take <span className="text-stone-100 font-bold">{effectiveCount}</span>
+                  {questionCount !== "all" && poolSize < questionCount && <span className="text-stone-500"> (max)</span>}</>
+              ) : selectedTiers.length === 0 ? (
+                <span className="text-stone-500">select at least one tier to continue</span>
+              ) : (
+                <span className="text-stone-500">no questions match your selection</span>
+              )}
+            </div>
+            <button onClick={startQuiz} disabled={!canStart}
+              className="px-6 py-3 border font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ borderColor: configColor, background: `${configColor}15`, color: configColor }}>
+              Start practice →
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -715,7 +770,7 @@ function PracticeMode() {
               tier 0{q.tier} — {TIER_LABELS[q.tier]}
             </div>
             <div className="text-sm text-stone-400">
-              question <span className="text-stone-100 font-bold">{qIndex + 1}</span> of {questions.length}
+              question <span className="text-stone-100 font-bold">{qIndex + 1}</span> of {activeQuestions.length}
             </div>
           </div>
           <div className="text-right">
@@ -726,7 +781,7 @@ function PracticeMode() {
           </div>
         </div>
         <div className="flex gap-1 flex-wrap">
-          {questions.map((qq, i) => {
+          {activeQuestions.map((qq, i) => {
             const state = qq.id in answeredIds ? (answeredIds[qq.id] ? "correct" : "wrong")
               : i === qIndex ? "current" : "pending";
             return (
@@ -909,7 +964,7 @@ function PracticeMode() {
           <div className="flex gap-2">
             <button onClick={() => qIndex > 0 && setQIndex(qIndex - 1)} disabled={qIndex === 0}
               className="px-4 py-2 text-sm text-stone-400 border border-stone-800 hover:bg-stone-900 disabled:opacity-30 disabled:cursor-not-allowed">← prev</button>
-            <button onClick={() => qIndex < questions.length - 1 && setQIndex(qIndex + 1)} disabled={qIndex === questions.length - 1}
+            <button onClick={() => qIndex < activeQuestions.length - 1 && setQIndex(qIndex + 1)} disabled={qIndex === activeQuestions.length - 1}
               className="px-4 py-2 text-sm text-stone-400 border border-stone-800 hover:bg-stone-900 disabled:opacity-30 disabled:cursor-not-allowed">next →</button>
           </div>
         </div>
@@ -924,19 +979,19 @@ function PracticeMode() {
         )}
       </div>
 
-      {score.total === questions.length && (
+      {activeQuestions.length > 0 && score.total === activeQuestions.length && (
         <div className="border-2 p-6 text-center" style={{ borderColor: practiceColor, background: `${practiceColor}08` }}>
           <div className="text-xs tracking-widest uppercase text-stone-500 mb-2">all done</div>
           <div className="text-5xl font-bold mb-3" style={{ fontFamily: "'Fraunces', Georgia, serif", color: practiceColor }}>
-            {score.correct} / {questions.length}
+            {score.correct} / {activeQuestions.length}
           </div>
           <div className="text-sm text-stone-400 mb-4">
-            {score.correct === questions.length ? "Perfect score. You've got this."
-              : score.correct >= questions.length * 0.75 ? "Solid. A few tricky ones remain — review and try again."
-              : score.correct >= questions.length * 0.5 ? "Halfway there. Revisit the learn mode for the concepts that tripped you up."
+            {score.correct === activeQuestions.length ? "Perfect score. You've got this."
+              : score.correct >= activeQuestions.length * 0.75 ? "Solid. A few tricky ones remain — review and try again."
+              : score.correct >= activeQuestions.length * 0.5 ? "Halfway there. Revisit the learn mode for the concepts that tripped you up."
               : "Big O takes time. Start with Learn mode, then come back."}
           </div>
-          <button onClick={reset} className="px-6 py-2 border text-sm" style={{ borderColor: practiceColor, color: practiceColor }}>restart</button>
+          <button onClick={reset} className="px-6 py-2 border text-sm" style={{ borderColor: practiceColor, color: practiceColor }}>new session</button>
         </div>
       )}
     </div>
