@@ -6,3 +6,6 @@ dist/
 .vscode/
 .idea/
 *.log
+
+# generated at build time by scripts/generate-og.mjs
+apps/big-o/public/og.png
