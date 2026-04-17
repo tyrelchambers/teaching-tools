@@ -7,6 +7,7 @@ Collection of standalone teaching mini-apps. Each app under `apps/<name>/` is fu
 | App | Description | Live |
 |---|---|---|
 | [`apps/big-o`](apps/big-o) | Interactive Big-O notation teaching tool | https://big-o.tyrelchambers.com |
+| [`apps/bitwise`](apps/bitwise) | JavaScript bitwise operations + GF(2) polynomials | https://bitwise.tyrelchambers.com |
 
 ## Adding a new app
 
