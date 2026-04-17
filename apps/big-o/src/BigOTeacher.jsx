@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { questions } from "./questions";
+import { optimizations } from "./optimizations";
 
 // ============================================================
 // COMPLEXITIES DATA
@@ -304,6 +305,7 @@ export default function BigOTeacher() {
 
         {mode === "learn" && <LearnMode />}
         {mode === "practice" && <PracticeMode />}
+        {mode === "optimize" && <OptimizeMode />}
         {mode === "race" && <RaceMode />}
         {mode === "cases" && <CasesMode />}
         {mode === "cheatsheet" && <CheatsheetMode />}
@@ -333,6 +335,7 @@ export default function BigOTeacher() {
 // ============================================================
 function Header({ mode }) {
   const accent = mode === "practice" ? "#06b6d4"
+    : mode === "optimize" ? "#14b8a6"
     : mode === "race" ? "#f97316"
     : mode === "cases" ? "#a855f7"
     : mode === "cheatsheet" ? "#eab308"
@@ -361,6 +364,7 @@ function ModeTabs({ mode, setMode }) {
   const tabs = [
     { id: "learn", label: "Learn", sub: "explore the concepts" },
     { id: "practice", label: "Practice", sub: "test yourself" },
+    { id: "optimize", label: "Optimize", sub: "n\u00b2 \u2192 n patterns" },
     { id: "race", label: "Race", sub: "watch them run" },
     { id: "cases", label: "Cases", sub: "best / avg / worst" },
     { id: "cheatsheet", label: "Cheatsheet", sub: "structures \u00d7 ops" },
@@ -992,6 +996,272 @@ function PracticeMode() {
               : "Big O takes time. Start with Learn mode, then come back."}
           </div>
           <button onClick={reset} className="px-6 py-2 border text-sm" style={{ borderColor: practiceColor, color: practiceColor }}>new session</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// OPTIMIZE MODE
+// Teaches the "O(n\u00b2) \u2192 O(n)" recognition pattern: hashes, frequency
+// counters, sliding windows, array buffering.
+// ============================================================
+const OPTIMIZE_ACCENT = "#14b8a6";
+const OPTIMIZE_ACCENT_SOFT = "#5eead4";
+const OPTIMIZE_SLOW = "#ef4444";
+
+function formatInt(n) {
+  return Math.round(n).toLocaleString();
+}
+
+function OptimizeMode() {
+  const [index, setIndex] = useState(0);
+  const [selectedKey, setSelectedKey] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [solved, setSolved] = useState({});
+  const [n, setN] = useState(100);
+
+  const challenge = optimizations[index];
+
+  useEffect(() => {
+    setSelectedKey(null);
+    setSubmitted(false);
+  }, [index]);
+
+  const picked = challenge.options.find((o) => o.key === selectedKey);
+  const isCorrect = submitted && picked?.correct;
+
+  const submit = () => {
+    if (!selectedKey || submitted) return;
+    setSubmitted(true);
+    if (picked?.correct) {
+      setSolved((s) => ({ ...s, [challenge.id]: true }));
+    }
+  };
+
+  const slowOps = useMemo(() => {
+    const c = challenge.slow.complexity;
+    if (c.includes("k")) return Math.round(n * Math.min(n, 16));
+    return n * n;
+  }, [challenge, n]);
+  const fastOps = n;
+  const ratio = fastOps > 0 ? slowOps / fastOps : 0;
+
+  const tierAccent = tierColors[challenge.tier] || OPTIMIZE_ACCENT;
+
+  return (
+    <div className="space-y-6">
+      <div className="border border-stone-800 bg-stone-900/20 p-4 text-sm text-stone-400 leading-relaxed"
+        style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
+        <p>
+          Interviews love this pattern: a loop looks innocent, but it's secretly O(n²) because the inner
+          step re-scans, re-counts, or rebuilds something. The fix is almost always the same shape — trade
+          time for memory with a <em>hash</em>, a <em>frequency map</em>, or a <em>buffered array</em>. Read the
+          slow version, name the technique, then watch the operations collapse.
+        </p>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {optimizations.map((c, i) => {
+          const active = i === index;
+          const done = solved[c.id];
+          return (
+            <button key={c.id} onClick={() => setIndex(i)}
+              className="px-3 py-2 text-sm transition-all border flex items-center gap-2"
+              style={{
+                borderColor: active ? OPTIMIZE_ACCENT : done ? `${OPTIMIZE_ACCENT}55` : "#27272a",
+                background: active ? `${OPTIMIZE_ACCENT}18` : done ? `${OPTIMIZE_ACCENT}06` : "transparent",
+                color: active ? OPTIMIZE_ACCENT_SOFT : done ? OPTIMIZE_ACCENT : "#a8a29e",
+              }}>
+              <span className="w-2 h-2 shrink-0" style={{ background: tierColors[c.tier] }} />
+              <span className="font-semibold">{c.title}</span>
+              {done && <span className="text-xs opacity-70">✓</span>}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="border border-stone-800 bg-stone-900/40 p-6 md:p-8">
+        <div className="flex items-baseline gap-3 mb-1 flex-wrap">
+          <span className="text-xs tracking-widest uppercase" style={{ color: tierAccent }}>
+            tier 0{challenge.tier}
+          </span>
+          <span className="text-xs tracking-widest uppercase text-stone-500">optimization</span>
+        </div>
+        <h2 className="text-2xl md:text-3xl mb-2 text-stone-100"
+          style={{ fontFamily: "'Fraunces', Georgia, serif", fontStyle: "italic" }}>
+          {challenge.title}
+        </h2>
+        <p className="text-stone-400 text-sm md:text-base">{challenge.prompt}</p>
+      </div>
+
+      <div className={`grid grid-cols-1 ${submitted ? "lg:grid-cols-2" : ""} gap-4`}>
+        <CodePanel
+          label="slow version"
+          accent={OPTIMIZE_SLOW}
+          complexity={challenge.slow.complexity}
+          code={challenge.slow.code}
+          note={challenge.slow.note}
+        />
+        {submitted && (
+          <CodePanel
+            label="optimized"
+            accent={OPTIMIZE_ACCENT}
+            complexity={challenge.fast.complexity}
+            code={challenge.fast.code}
+            note={challenge.fast.note}
+          />
+        )}
+      </div>
+
+      <div className="border border-stone-800 bg-stone-900/20 p-5">
+        <div className="flex items-baseline gap-3 mb-3">
+          <span className="text-xs tracking-widest uppercase text-stone-500">which technique optimizes this?</span>
+          <span className="flex-1 h-px bg-stone-800" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {challenge.options.map((opt) => {
+            const isSelected = selectedKey === opt.key;
+            const isRight = submitted && opt.correct;
+            const isWrong = submitted && isSelected && !opt.correct;
+            let bg = "transparent", borderColor = "#292524", textColor = "#d6d3d1";
+            if (isRight) { bg = `${OPTIMIZE_ACCENT}18`; borderColor = OPTIMIZE_ACCENT; textColor = OPTIMIZE_ACCENT_SOFT; }
+            else if (isWrong) { bg = "#ef444418"; borderColor = "#ef4444"; textColor = "#fca5a5"; }
+            else if (isSelected) { bg = "#44403c40"; borderColor = "#78716c"; textColor = "#fafaf9"; }
+            return (
+              <button key={opt.key}
+                onClick={() => !submitted && setSelectedKey(opt.key)}
+                disabled={submitted}
+                className="text-left px-4 py-3 border transition-all"
+                style={{ background: bg, borderColor, color: textColor, cursor: submitted ? "default" : "pointer" }}>
+                <div className="flex items-center gap-3">
+                  <span className="w-4 h-4 border flex items-center justify-center text-[10px] shrink-0"
+                    style={{ borderColor, background: isRight ? OPTIMIZE_ACCENT : isWrong ? "#ef4444" : "transparent",
+                             color: isRight || isWrong ? "#0c0a09" : "transparent" }}>
+                    {isRight ? "\u2713" : isWrong ? "\u00d7" : ""}
+                  </span>
+                  <span className="font-semibold">{opt.label}</span>
+                </div>
+                {submitted && opt.hint && !opt.correct && (
+                  <div className="text-xs text-stone-500 mt-2 pl-7 leading-relaxed">{opt.hint}</div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-5 flex items-center justify-between flex-wrap gap-3">
+          {!submitted ? (
+            <button onClick={submit} disabled={!selectedKey}
+              className="px-6 py-3 border font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ borderColor: OPTIMIZE_ACCENT, background: `${OPTIMIZE_ACCENT}15`, color: OPTIMIZE_ACCENT_SOFT }}>
+              Reveal optimization →
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 text-sm font-semibold"
+              style={{ color: isCorrect ? OPTIMIZE_ACCENT_SOFT : "#fca5a5" }}>
+              {isCorrect ? "\u2713 Correct \u2014 that's the idiomatic fix." : "\u2717 Not quite. See below \u2014 the idiomatic fix is highlighted."}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button onClick={() => setIndex((i) => Math.max(0, i - 1))} disabled={index === 0}
+              className="px-4 py-2 text-sm text-stone-400 border border-stone-800 hover:bg-stone-900 disabled:opacity-30 disabled:cursor-not-allowed">
+              ← prev
+            </button>
+            <button onClick={() => setIndex((i) => Math.min(optimizations.length - 1, i + 1))}
+              disabled={index === optimizations.length - 1}
+              className="px-4 py-2 text-sm text-stone-400 border border-stone-800 hover:bg-stone-900 disabled:opacity-30 disabled:cursor-not-allowed">
+              next →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {submitted && (
+        <>
+          <div className="border border-stone-800 bg-stone-900/40 p-5">
+            <div className="flex items-baseline justify-between mb-4 flex-wrap gap-2">
+              <span className="text-xs tracking-widest uppercase text-stone-500">operation count at n = {n}</span>
+              <span className="text-xs text-stone-600">{challenge.slow.complexity} vs {challenge.fast.complexity}</span>
+            </div>
+            <input type="range" min="10" max="1000" step="10" value={n}
+              onChange={(e) => setN(parseInt(e.target.value))}
+              className="w-full h-1 bg-stone-800 appearance-none cursor-pointer slider mb-4" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="border p-4" style={{ borderColor: `${OPTIMIZE_SLOW}44`, background: `${OPTIMIZE_SLOW}08` }}>
+                <div className="text-xs tracking-widest uppercase mb-1" style={{ color: OPTIMIZE_SLOW }}>slow</div>
+                <div className="text-3xl font-bold tabular-nums" style={{ color: OPTIMIZE_SLOW, fontFamily: "'Fraunces', Georgia, serif" }}>
+                  {formatInt(slowOps)}
+                </div>
+                <div className="text-xs text-stone-500 mt-1">{challenge.slow.complexity} operations</div>
+              </div>
+              <div className="border p-4" style={{ borderColor: `${OPTIMIZE_ACCENT}44`, background: `${OPTIMIZE_ACCENT}08` }}>
+                <div className="text-xs tracking-widest uppercase mb-1" style={{ color: OPTIMIZE_ACCENT }}>optimized</div>
+                <div className="text-3xl font-bold tabular-nums" style={{ color: OPTIMIZE_ACCENT_SOFT, fontFamily: "'Fraunces', Georgia, serif" }}>
+                  {formatInt(fastOps)}
+                </div>
+                <div className="text-xs text-stone-500 mt-1">{challenge.fast.complexity} operations</div>
+              </div>
+              <div className="border border-stone-700 bg-stone-900/60 p-4">
+                <div className="text-xs tracking-widest uppercase mb-1 text-stone-500">speedup</div>
+                <div className="text-3xl font-bold tabular-nums text-stone-100"
+                  style={{ fontFamily: "'Fraunces', Georgia, serif", fontStyle: "italic" }}>
+                  {ratio >= 10 ? formatInt(ratio) : ratio.toFixed(1)}×
+                </div>
+                <div className="text-xs text-stone-500 mt-1">fewer operations</div>
+              </div>
+            </div>
+            <div className="mt-4 border border-stone-800 bg-stone-950/60 p-3 overflow-hidden">
+              <div className="flex items-center gap-1 h-6">
+                <div className="transition-all"
+                  style={{ width: "100%", height: "100%", background: `linear-gradient(90deg, ${OPTIMIZE_SLOW}, ${OPTIMIZE_SLOW}44)` }} />
+              </div>
+              <div className="text-[10px] text-stone-600 mt-0.5">{challenge.slow.complexity} bar</div>
+              <div className="flex items-center gap-1 h-6 mt-2">
+                <div className="transition-all"
+                  style={{ width: `${Math.max(0.5, (fastOps / slowOps) * 100)}%`, height: "100%",
+                           background: `linear-gradient(90deg, ${OPTIMIZE_ACCENT}, ${OPTIMIZE_ACCENT}44)` }} />
+              </div>
+              <div className="text-[10px] text-stone-600 mt-0.5">{challenge.fast.complexity} bar (relative)</div>
+            </div>
+          </div>
+
+          <div className="border-l-2 pl-5 py-3" style={{ borderColor: OPTIMIZE_ACCENT }}>
+            <div className="text-xs tracking-widest uppercase mb-2" style={{ color: OPTIMIZE_ACCENT_SOFT }}>takeaway</div>
+            <p className="text-stone-300 leading-relaxed text-[15px]"
+              style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
+              {challenge.insight}
+            </p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function CodePanel({ label, accent, complexity, code, note }) {
+  return (
+    <div className="border bg-stone-950/40 overflow-hidden" style={{ borderColor: `${accent}44` }}>
+      <div className="flex items-center justify-between px-4 py-2.5 border-b bg-stone-900/80"
+        style={{ borderColor: `${accent}33` }}>
+        <span className="text-xs tracking-widest uppercase" style={{ color: accent }}>{label}</span>
+        <span className="text-sm font-bold tabular-nums" style={{ color: accent, fontFamily: "'Fraunces', Georgia, serif", fontStyle: "italic" }}>
+          {complexity}
+        </span>
+      </div>
+      <div className="p-4 font-mono text-sm leading-relaxed">
+        {code.map((line, i) => (
+          <div key={i} className="flex gap-4 px-1 py-0.5">
+            <span className="text-stone-600 select-none w-6 text-right shrink-0">{i + 1}</span>
+            <code className="flex-1 whitespace-pre text-stone-300">{line}</code>
+          </div>
+        ))}
+      </div>
+      {note && (
+        <div className="border-t px-4 py-3 text-xs text-stone-400 leading-relaxed"
+          style={{ borderColor: `${accent}22`, background: `${accent}06`, fontFamily: "'Fraunces', Georgia, serif" }}>
+          {note}
         </div>
       )}
     </div>
