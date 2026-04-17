@@ -413,7 +413,7 @@ function LearnMode() {
   const xScale = (v) => PAD.l + (v / maxN) * chartW;
   const buildPath = (fn) => {
     const pts = [];
-    for (let x = 1; x <= maxN; x += 1) pts.push(`${xScale(x).toFixed(2)},${yScale(fn(x)).toFixed(2)}`);
+    for (let x = 0; x <= maxN; x += 1) pts.push(`${xScale(x).toFixed(2)},${yScale(fn(x)).toFixed(2)}`);
     return "M" + pts.join(" L");
   };
   const operations = useMemo(() => {
@@ -930,7 +930,7 @@ function PracticeMode() {
                 {[{ curve: q.optionA.curve, color: "#06b6d4", label: "A" }, { curve: q.optionB.curve, color: "#f97316", label: "B" }].map(({ curve, color, label }) => {
                   const pts = [];
                   const maxVal = Math.max(q.optionA.curve(64), q.optionB.curve(64), 1);
-                  for (let x = 1; x <= 64; x++) {
+                  for (let x = 0; x <= 64; x++) {
                     const y = curve(x);
                     const yScl = 10 + 110 - (Math.log10(y + 1) / Math.log10(maxVal + 1)) * 110;
                     pts.push(`${40 + (x / 64) * 550},${yScl}`);
